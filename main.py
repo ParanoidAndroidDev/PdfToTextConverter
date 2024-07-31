@@ -25,6 +25,13 @@ app = PDFViewer(root)
 
 root.mainloop()
 
+# import pyttsx3
+# engine = pyttsx3.init()
+# with open("test3.txt") as file:
+#     lines = file.readlines()
+# engine.say(" ".join(lines))
+# engine.runAndWait()
+
 # import os
 
 # def text_to_speech(text):

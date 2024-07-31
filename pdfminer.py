@@ -46,7 +46,6 @@ class PDFMiner:
                                     if page_num in page_templates:
                                         page_template = page_templates[page_num]
                                         if not page_template.check_rect(span["bbox"], width, height):
-                                            print(text)
                                             continue
 
                                     result_text += text + "\n"

@@ -163,7 +163,7 @@ class PDFViewer:
                 self.canvas.update_templates()
     
     def convert_to_text(self):
-        with open("test3.txt", "w") as file:
+        with open("test3.txt", "w", encoding="utf-8", newline="\n") as file:
             if self.miner:
                 self.converted_text = self.miner.convert_to_text(self.canvas.main_template, self.canvas.page_templates)
                 file.write(self.converted_text)
