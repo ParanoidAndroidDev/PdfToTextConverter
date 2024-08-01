@@ -1,8 +1,8 @@
+import pyttsx3
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog as fd
 import os
-import math
 from pdfminer import PDFMiner
 from pdfcanvas import *
 
@@ -163,12 +163,30 @@ class PDFViewer:
                 self.canvas.update_templates()
     
     def convert_to_text(self):
-        with open("test3.txt", "w", encoding="utf-8", newline="\n") as file:
+        filename = self.get_output_filename()
+        if not filename:
+            print("Error: No filename given")
+            return
+
+        with open(filename, "w", encoding="utf-8", newline="\n") as file:
             if self.miner:
                 self.converted_text = self.miner.convert_to_text(self.canvas.main_template, self.canvas.page_templates)
                 file.write(self.converted_text)
 
     def speak_text(self):
-        print("Speaking text")
-        os.system(f"espeak -v mb-de1 -f 'test3.txt'")
+        filename = self.get_output_filename()
+        if not filename:
+            print("Error: No filename given.")
 
+        engine = pyttsx3.init()
+        with open("test3.txt", encoding="utf-8", newline="\n") as file:
+            lines = file.readlines()
+            text = "".join(lines)    
+        engine.say(text)
+        engine.runAndWait()
+        
+    def get_output_filename(self):
+        if self.path:
+            return os.path.basename(self.path).removesuffix(".pdf") + ".txt"
+        else:
+            return None
