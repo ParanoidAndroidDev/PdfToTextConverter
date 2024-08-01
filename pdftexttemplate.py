@@ -48,7 +48,6 @@ class TextTemplate:
             target_area = (x2_percent - x1_percent) * (y2_percent - y1_percent)
 
             if intersection_area >= (0.5 * target_area):
-                print (intersection_area, target_area)
                 return False
 
         

@@ -27,10 +27,19 @@ root.mainloop()
 
 # import pyttsx3
 # engine = pyttsx3.init()
-# with open("test3.txt") as file:
+# with open("test3.txt", encoding="utf-8", newline="\n") as file:
 #     lines = file.readlines()
-# engine.say(" ".join(lines))
+#     for line in lines:
+#         engine.say(line)
+#     # text = "".join(lines)
+#     # print(text)
+
+# # engine.say(text)
 # engine.runAndWait()
+
+# from gtts import gTTS
+# tts = gTTS(text, lang='de')
+# tts.save('hello.mp3')
 
 # import os
 
