@@ -1,5 +1,5 @@
 from tkinter import *
-from pdftexttemplate import TextTemplate
+from src.pdftexttemplate import TextTemplate
 
 # Canvas Mode
 CM_POSRECT = 0

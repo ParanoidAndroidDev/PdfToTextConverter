@@ -16,15 +16,18 @@ class TextTemplate:
         y1_percent = coords[1] / max_height
         y2_percent = coords[3] / max_height
 
+        check_pos = False
         for pos_rect in self.pos_rects:
             rect_x1_percent = pos_rect[0] / self.canvas.width
             rect_x2_percent = pos_rect[2] / self.canvas.width
             rect_y1_percent = pos_rect[1] / self.canvas.height
             rect_y2_percent = pos_rect[3] / self.canvas.height
 
-            if x1_percent < rect_x1_percent or x2_percent > rect_x2_percent or y1_percent < rect_y1_percent or y2_percent > rect_y2_percent:
-                return False
+            if x1_percent >= rect_x1_percent and x2_percent <= rect_x2_percent and y1_percent >= rect_y1_percent and y2_percent <= rect_y2_percent:
+                check_pos = True
+                break
         
+        check_neg = False
         for neg_rect in self.neg_rects:
             rect_x1_percent = neg_rect[0] / self.canvas.width
             rect_x2_percent = neg_rect[2] / self.canvas.width
@@ -33,7 +36,8 @@ class TextTemplate:
 
             # check if target is fully contained in neg_rect
             if x1_percent >= rect_x1_percent and x2_percent <= rect_x2_percent and y1_percent >= rect_y1_percent and y2_percent <= rect_y2_percent:
-                return False
+                check_neg = True
+                break
             
             # otherwise check if at least 50% of target is covered by neg_rect
             intersection_x1 = max(x1_percent, rect_x1_percent)
@@ -48,7 +52,7 @@ class TextTemplate:
             target_area = (x2_percent - x1_percent) * (y2_percent - y1_percent)
 
             if intersection_area >= (0.5 * target_area):
-                return False
-
+                check_neg = True
+                continue
         
-        return True
+        return (check_pos, check_neg)

@@ -3,8 +3,8 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog as fd
 import os
-from pdfminer import PDFMiner
-from pdfcanvas import *
+from src.pdfminer import PDFMiner
+from src.pdfcanvas import *
 
 class PDFViewer:
     def __init__(self, main):
@@ -45,8 +45,8 @@ class PDFViewer:
         # navigation controls
         self.navigation_controls = ttk.Frame(self.controls_frame)
         self.navigation_controls.pack(side=TOP)
-        self.uparrow_icon = PhotoImage(file='uparrow.png')
-        self.downarrow_icon = PhotoImage(file='downarrow.png')
+        self.uparrow_icon = PhotoImage(file='img/uparrow.png')
+        self.downarrow_icon = PhotoImage(file='img/downarrow.png')
         self.uparrow = self.uparrow_icon.subsample(3, 3)
         self.downarrow = self.downarrow_icon.subsample(3, 3)
         self.upbutton = Button(self.navigation_controls, bg="darkgrey", image=self.uparrow, command=self.previous_page)

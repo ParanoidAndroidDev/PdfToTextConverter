@@ -2,7 +2,7 @@ import math
 from typing import Dict
 import pymupdf
 from tkinter import PhotoImage
-from pdftexttemplate import TextTemplate
+from src.pdftexttemplate import TextTemplate
 
 class PDFMiner:
     def __init__(self, filepath):
@@ -40,13 +40,18 @@ class PDFMiner:
                                 if "text" in span:
                                     text = span["text"]
                                     
-                                    if not main_template.check_rect(span["bbox"], width, height):
+                                    (check_pos, check_neg) = main_template.check_rect(span["bbox"], width, height)
+                                    if check_neg:
                                         continue
 
                                     if page_num in page_templates:
                                         page_template = page_templates[page_num]
-                                        if not page_template.check_rect(span["bbox"], width, height):
+                                        (check_page_pos, check_page_neg) = page_template.check_rect(span["bbox"], width, height)
+                                        if check_page_neg:
                                             continue
+                                    
+                                    if not check_pos and not check_page_pos:
+                                        continue
 
                                     result_text += text + "\n"
                 

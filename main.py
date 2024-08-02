@@ -1,5 +1,5 @@
 from tkinter import *
-from pdfviewer import PDFViewer
+from src.pdfviewer import PDFViewer
 # import pypdf
 
 # pdffileobj = open('test2.pdf', 'rb')
