@@ -1,11 +1,11 @@
 $speechSynthesizer = New-Object -TypeName System.Speech.Synthesis.SpeechSynthesizer
-$soundFilePath = "Test.wav"
 try {
     
     $Location = "output.txt"
-    $Destination = "output.wav"
+    $Destination = "D:\sebi_\projects\PdfToTextConverter\output.wav"
 
-    # $speechSynthesizer.SetOutputToWaveFile($soundFilePath)
+    $streamFormat = [System.Speech.AudioFormat.SpeechAudioFormatInfo]::new(8000,[System.Speech.AudioFormat.AudioBitsPerSample]::Sixteen,[System.Speech.AudioFormat.AudioChannel]::Mono)
+    $speechSynthesizer.SetOutputToWaveFile($Destination, $streamFormat)
     $Contents = Get-Content $Location
     $speechSynthesizer.Speak($Contents)
 }
