@@ -40,7 +40,8 @@ class PDFViewer:
         #
 
         self.controls_frame = ttk.Frame(self.main)
-        self.controls_frame.grid(row=0, column=1)
+        self.controls_frame.grid(row=0, column=1, sticky='we')
+        self.main.grid_columnconfigure(1, weight=1)
 
         # navigation controls
         self.navigation_controls = ttk.Frame(self.controls_frame)
@@ -58,43 +59,49 @@ class PDFViewer:
 
         # template controls
         self.template_controls = Frame(self.controls_frame, borderwidth=5)
-        self.template_controls.pack(side=TOP)
-        self.canvas_mode_var = IntVar(self.main, CM_POSRECT)
-        self.canvas_mode_maintemplate_var = BooleanVar(self.main, False)
+        self.template_controls.pack(side=TOP, fill='x')
+        self.canvas_mode_var = IntVar(self.main, CM_POSITIVE)
         self.template_controls_radiogroup = ttk.Frame(self.template_controls)
         self.template_controls_radiogroup.pack()
-        self.canvas_mode_button_posrect = ttk.Radiobutton(self.template_controls_radiogroup, text="Positive", variable=self.canvas_mode_var, command=lambda: self.update_canvas_mode(CM_POSRECT, self.canvas_mode_maintemplate_var.get()), value=CM_POSRECT)
+        self.canvas_mode_button_posrect = ttk.Radiobutton(self.template_controls_radiogroup, text="Positive", variable=self.canvas_mode_var, command=lambda: self.update_canvas_mode(CM_POSITIVE), value=CM_POSITIVE)
         self.canvas_mode_button_posrect.grid(row=0, column=0)
-        self.canvas_mode_button_negrect = ttk.Radiobutton(self.template_controls_radiogroup, text="Negative", variable=self.canvas_mode_var, command=lambda: self.update_canvas_mode(CM_NEGRECT, self.canvas_mode_maintemplate_var.get()), value=CM_NEGRECT)
+        self.canvas_mode_button_negrect = ttk.Radiobutton(self.template_controls_radiogroup, text="Negative", variable=self.canvas_mode_var, command=lambda: self.update_canvas_mode(CM_NEGATIVE), value=CM_NEGATIVE)
         self.canvas_mode_button_negrect.grid(row=0, column=1)
-        self.canvas_mode_button_maintemplate = ttk.Checkbutton(self.template_controls, text="Global Template", variable=self.canvas_mode_maintemplate_var, command=lambda: self.update_canvas_mode(self.canvas_mode_var.get(), self.canvas_mode_maintemplate_var.get()), onvalue=True, offvalue=False)
-        self.canvas_mode_button_maintemplate.pack()
+        self.pagetemplate_entries = ttk.Frame(self.template_controls)
+        self.pagetemplate_entries.pack()
+        self.frompage_variable = StringVar(self.main, "1")
+        self.topage_variable = StringVar(self.main, "1")
+        self.eachpage_variable = StringVar(self.main, "1")
+        self.pagetemplate_from_label = ttk.Label(self.pagetemplate_entries, text="From page ")
+        self.pagetemplate_from_label.grid(row=0, column=0)
+        self.pagetemplate_from_entry = ttk.Entry(self.pagetemplate_entries, width=5, textvariable=self.frompage_variable)
+        self.pagetemplate_from_entry.grid(row=0, column=1)
+        self.pagetemplate_to_label = ttk.Label(self.pagetemplate_entries, text=" to ")
+        self.pagetemplate_to_label.grid(row=0, column=2)
+        self.pagetemplate_to_entry = ttk.Entry(self.pagetemplate_entries, width=5, textvariable=self.topage_variable)
+        self.pagetemplate_to_entry.grid(row=0, column=3)
+        self.pagetemplate_each_label_1 = ttk.Label(self.pagetemplate_entries, text=" each ")
+        self.pagetemplate_each_label_1.grid(row=0, column=4)
+        self.pagetemplate_each_entry = ttk.Entry(self.pagetemplate_entries, width=5, textvariable=self.eachpage_variable)
+        self.pagetemplate_each_entry.grid(row=0, column=5)
+        self.pagetemplate_each_label_2 = ttk.Label(self.pagetemplate_entries, text="th page")
+        self.pagetemplate_each_label_2.grid(row=0, column=6)
+        self.pagetemplate_entries.grid_columnconfigure(0, weight=4)
+        self.pagetemplate_entries.grid_columnconfigure(1, weight=1)
+        self.pagetemplate_entries.grid_columnconfigure(2, weight=4)
+        self.pagetemplate_entries.grid_columnconfigure(3, weight=1)
+        self.pagetemplate_entries.grid_columnconfigure(4, weight=4)
+        self.pagetemplate_entries.grid_columnconfigure(5, weight=1)
+        self.pagetemplate_entries.grid_columnconfigure(6, weight=4)
         self.rect_listboxes = ttk.Frame(self.template_controls)
-        self.rect_listboxes.pack()
-        self.main_template_posrects_label = ttk.Label(self.rect_listboxes, text="Global Template", justify="center")
-        self.main_template_posrects_label.grid(row=0, column=0, columnspan=2)
-        self.main_template_posrects_listbox = Listbox(self.rect_listboxes, )
-        self.main_template_posrects_listbox.grid(row=1, column=0)
-        self.main_template_posrects_listbox.bind('<<ListboxSelect>>', self.select_main_template_posrect)
-        self.main_template_posrects_delete_button = ttk.Button(self.rect_listboxes, text="Delete selected", command=self.delete_main_template_posrects)
-        self.main_template_posrects_delete_button.grid(row=2, column=0)
-        self.main_template_negrects_listbox = Listbox(self.rect_listboxes)
-        self.main_template_negrects_listbox.grid(row=1, column=1)
-        self.main_template_negrects_listbox.bind('<<ListboxSelect>>', self.select_main_template_negrect)
-        self.main_template_negrects_delete_button = ttk.Button(self.rect_listboxes, text="Delete selected", command=self.delete_main_template_negrects)
-        self.main_template_negrects_delete_button.grid(row=2, column=1)
-        self.page_template_posrects_label = ttk.Label(self.rect_listboxes, text="Page Template", justify="center")
-        self.page_template_posrects_label.grid(row=3, column=0, columnspan=2)
-        self.page_template_posrects_listbox = Listbox(self.rect_listboxes)
-        self.page_template_posrects_listbox.grid(row=4, column=0)
-        self.page_template_posrects_listbox.bind('<<ListboxSelect>>', self.select_page_template_posrect)
-        self.page_template_posrects_delete_button = ttk.Button(self.rect_listboxes, text="Delete selected", command=self.delete_page_template_posrects)
-        self.page_template_posrects_delete_button.grid(row=5, column=0)
-        self.page_template_negrects_listbox = Listbox(self.rect_listboxes)
-        self.page_template_negrects_listbox.grid(row=4, column=1)
-        self.page_template_negrects_listbox.bind('<<ListboxSelect>>', self.select_page_template_negrect)
-        self.page_template_negrects_delete_button = ttk.Button(self.rect_listboxes, text="Delete selected", command=self.delete_page_template_negrects)
-        self.page_template_negrects_delete_button.grid(row=5, column=1)
+        self.rect_listboxes.pack(fill='x')
+        self.pagetemplate_label = ttk.Label(self.rect_listboxes, text="Page Template", justify="center")
+        self.pagetemplate_label.pack()
+        self.pagetemplate_listbox = Listbox(self.rect_listboxes)
+        self.pagetemplate_listbox.pack(fill='x')
+        self.pagetemplate_listbox.bind('<<ListboxSelect>>', self.select_pagetemplate)
+        self.pagetemplate_delete_button = ttk.Button(self.rect_listboxes, text="Delete selected", command=self.delete_pagetemplate)
+        self.pagetemplate_delete_button.pack()
 
 
         # text conversion controls
@@ -104,7 +111,6 @@ class PDFViewer:
         self.convert_to_text_button.pack()
         self.speak_text_button = ttk.Button(self.conversion_controls, text="Speak text", command=self.speak_text)
         self.speak_text_button.pack()
-
 
 
         #
@@ -123,64 +129,24 @@ class PDFViewer:
         self.scrollx.grid(row=1, column=0, sticky=(W, S, E))
 
         # PDF canvas
-        self.canvas = PDFCanvas(self.pdf_frame, self.main_template_posrects_listbox, self.main_template_negrects_listbox, self.page_template_posrects_listbox, self.page_template_negrects_listbox, bg='#ECE8F3')
+        self.canvas = PDFCanvas(self.pdf_frame, self.pagetemplate_listbox, self.pagetemplate_from_entry, self.pagetemplate_to_entry, self.pagetemplate_each_entry, bg='#ECE8F3')
         self.canvas.configure(yscrollcommand=self.scrolly.set, xscrollcommand=self.scrollx.set)
         self.canvas.grid(row=0, column=0, sticky=N + W + S + E)
         self.scrollx.configure(command=self.canvas.xview)
         self.scrolly.configure(command=self.canvas.yview)
 
 
-    def update_canvas_mode(self, mode, maintemplate=False):
-        if maintemplate:
-            if mode == CM_POSRECT:
-                self.canvas.mode = CM_TEMPLATE_POSRECT
-            elif mode == CM_NEGRECT:
-                self.canvas.mode = CM_TEMPLATE_NEGRECT
-            else:
-                self.canvas.mode = mode
-        else:
-            if mode == CM_TEMPLATE_POSRECT:
-                self.canvas.main_templatemode = CM_POSRECT
-            elif mode == CM_TEMPLATE_NEGRECT:
-                self.canvas.mode = CM_NEGRECT
-            else:
-                self.canvas.mode = mode
-
-    def delete_main_template_posrects(self):
-        self.canvas.delete_main_template_posrects()
+    def update_canvas_mode(self, mode):
+        self.canvas.mode = mode
     
-    def delete_main_template_negrects(self):
-        self.canvas.delete_main_template_negrects()
-    
-    def delete_page_template_posrects(self):
-        self.canvas.delete_page_template_posrects()
+    def delete_pagetemplate(self):
+        self.canvas.delete_pagetemplate()
 
-    def delete_page_template_negrects(self):
-        self.canvas.delete_page_template_negrects()
-
-    def select_main_template_posrect(self, evt):
+    def select_pagetemplate(self, evt):
         selection = evt.widget.curselection()
         if len(selection) > 0:
             index = int(selection[0])
-            self.canvas.select_main_template_posrect(index)
-
-    def select_main_template_negrect(self, evt):
-        selection = evt.widget.curselection()
-        if len(selection) > 0:
-            index = int(selection[0])
-            self.canvas.select_main_template_negrect(index)
-
-    def select_page_template_posrect(self, evt):
-        selection = evt.widget.curselection()
-        if len(selection) > 0:
-            index = int(selection[0])
-            self.canvas.select_page_template_posrect(index)
-
-    def select_page_template_negrect(self, evt):
-        selection = evt.widget.curselection()
-        if len(selection) > 0:
-            index = int(selection[0])
-            self.canvas.select_page_template_negrect(index)
+            self.canvas.select_pagetemplate(evt.widget.get(index))
 
     def open_file(self):
         filepath = fd.askopenfilename(title='Select a PDF file', initialdir=os.getcwd(), filetypes=(('PDF', '*.pdf'), ))

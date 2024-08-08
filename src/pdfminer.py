@@ -1,8 +1,7 @@
-import math
-from typing import Dict
+from typing import List
 import pymupdf
 from tkinter import PhotoImage
-from src.pdftexttemplate import TextTemplate
+from src.pdfpagetemplate import PageTemplate
 
 class PDFMiner:
     def __init__(self, filepath):
@@ -23,7 +22,7 @@ class PDFMiner:
         imgdata = px1.tobytes("ppm")
         return PhotoImage(data=imgdata)
     
-    def convert_to_text(self, main_template: TextTemplate, page_templates: Dict[int, TextTemplate]):
+    def convert_to_text(self, page_templates: List[PageTemplate]):
         result_text = ""
 
         for page_num in range(self.pdf.page_count):
@@ -39,20 +38,22 @@ class PDFMiner:
                             for span in line["spans"]:
                                 if "text" in span:
                                     text = span["text"]
-                                    
-                                    (check_pos, check_neg) = main_template.check_rect(span["bbox"], width, height)
-                                    if check_neg:
-                                        continue
 
-                                    if page_num in page_templates:
-                                        page_template = page_templates[page_num]
-                                        (check_page_pos, check_page_neg) = page_template.check_rect(span["bbox"], width, height)
-                                        if check_page_neg:
+                                    accept = False
+                                    reject = False
+                                    for page_template in page_templates:
+                                        
+                                        if not page_num in page_template.get_page_range():
                                             continue
-                                    
-                                    if not check_pos and not check_page_pos:
-                                        continue
 
-                                    result_text += text + "\n"
+                                        if page_template.check_rect(span["bbox"], width, height):
+                                            if page_template.type == "negative":
+                                                reject = True
+                                                break
+                                            if page_template.type == "positive":
+                                                accept = True
+
+                                    if accept and not reject:
+                                        result_text += text + "\n"
                 
         return result_text

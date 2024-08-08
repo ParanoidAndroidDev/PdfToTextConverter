@@ -1,31 +1,28 @@
 from tkinter import *
-from src.pdftexttemplate import TextTemplate
+from src.pdfpagetemplate import PageTemplate
 
 # Canvas Mode
-CM_POSRECT = 0
-CM_NEGRECT = 1
-CM_TEMPLATE_POSRECT = 2
-CM_TEMPLATE_NEGRECT = 3
+CM_POSITIVE = 0
+CM_NEGATIVE = 1
 
 POSRECT_COLOR = "#36a127"
 NEGRECT_COLOR = "red"
 SELECTION_COLOR = "yellow"
 
 class PDFCanvas(Canvas):
-    def __init__(self, master, mt_prect_listbox, mt_nrect_listbox, pt_prect_listbox, pt_nrect_listbox, cnf={}, **kwargs):
+    def __init__(self, master, template_listbox, from_entry, to_entry, each_entry, cnf={}, **kwargs):
         super().__init__(master, cnf, **kwargs)
 
         self.page_number = 0
-        self.mode = CM_POSRECT
-        self.main_template = TextTemplate(self)
-        self.page_templates = dict()
+        self.mode = CM_POSITIVE
+        self.page_templates = {}
         self.current_rect_id = None
         self.rect_ids = []
 
-        self.main_template_posrects_listbox = mt_prect_listbox
-        self.main_template_negrects_listbox = mt_nrect_listbox
-        self.page_template_posrects_listbox = pt_prect_listbox
-        self.page_template_negrects_listbox = pt_nrect_listbox
+        self.pagetemplate_listbox = template_listbox
+        self.from_entry = from_entry
+        self.to_entry = to_entry
+        self.each_entry = each_entry
 
         def on_canvas_drag_lmb(event):
             if (self.current_rect_id):
@@ -53,130 +50,72 @@ class PDFCanvas(Canvas):
         def on_canvas_buttonrelease(event):
             if event.num == 1:
                 coords = self.coords(self.current_rect_id)
-                if self.mode == CM_POSRECT:
-                    if not self.page_number in self.page_templates:
-                        self.page_templates[self.page_number] = TextTemplate(self)
-                    template = self.page_templates[self.page_number]
-                    template.add_pos_rect(coords)
-                    idx = len(template.pos_rects) - 1
-                    self.page_template_posrects_listbox.insert(idx, idx)
-                    self.delete(self.current_rect_id)
-                elif self.mode == CM_NEGRECT:
-                    if not self.page_number in self.page_templates:
-                        self.page_templates[self.page_number] = TextTemplate(self)
-                    template = self.page_templates[self.page_number]
-                    template.add_neg_rect(coords)
-                    idx = len(template.neg_rects) - 1
-                    self.page_template_negrects_listbox.insert(idx, idx)
-                    self.delete(self.current_rect_id)
-                elif self.mode == CM_TEMPLATE_POSRECT:
-                    self.main_template.add_pos_rect(coords)
-                    idx = len(self.main_template.pos_rects) - 1
-                    self.main_template_posrects_listbox.insert(idx, idx)
-                    self.delete(self.current_rect_id)
-                elif self.mode == CM_TEMPLATE_NEGRECT:
-                    self.main_template.add_neg_rect(coords)
-                    idx = len(self.main_template.neg_rects) - 1
-                    self.main_template_negrects_listbox.insert(idx, idx)
-                    self.delete(self.current_rect_id)
+                self.delete(self.current_rect_id)
+
+                from_value = int(self.from_entry.get()) - 1
+                to_value = int(self.to_entry.get()) - 1 
+                each_value = int(self.each_entry.get())
+
+                templatetype = "undefined"
+                if self.mode == CM_POSITIVE:
+                    templatetype = "positive"
+                elif self.mode == CM_NEGATIVE:
+                    templatetype = "negative"
+
+                key = (templatetype, from_value, to_value, each_value)                
+                if key in self.page_templates:
+                    template = self.page_templates[key]
+                else:
+                    template = PageTemplate(self, templatetype, from_value, to_value, each_value)
+                    self.page_templates[key] = template
+
+                    listbox_entry = self.get_listbox_entry(template)
+                    self.pagetemplate_listbox.insert(self.pagetemplate_listbox.size(), listbox_entry)
                 
+                template.add_rect(coords)
                 self.update_templates()
         
         self.bind("<B1-Motion>", on_canvas_drag_lmb)
         self.bind("<ButtonPress>", on_canvas_buttonpress)
         self.bind("<ButtonRelease>", on_canvas_buttonrelease)
     
+    def get_listbox_entry(self, pagetemplate):
+        return "type " + pagetemplate.templatetype + ", from " + str(pagetemplate.frompage + 1) + ", to " + str(pagetemplate.topage + 1) + ", each " + str(pagetemplate.eachpage)
+
+
     def set_page_number(self, p):
         self.page_number = p
-        for i in range(self.page_template_posrects_listbox.size()):
-            self.page_template_posrects_listbox.delete(i)
-        for i in range(self.page_template_negrects_listbox.size()):
-            self.page_template_negrects_listbox.delete(i)
+        self.pagetemplate_listbox.delete(0, END)
         
-        if p in self.page_templates:
-            page_template = self.page_templates[p]
-            idx = 0
-            for pos_rect in page_template.pos_rects:
-                self.page_template_posrects_listbox.insert(idx, idx)
-                idx += 1
-            
-            idx = 0
-            for neg_rect in page_template.neg_rects:
-                self.page_template_negrects_listbox.insert(idx, idx)
-                idx += 1
+        for d in self.page_templates:
+            page_template = self.page_templates[d]
+            if p in page_template.get_page_range():
+                listbox_entry = self.get_listbox_entry(page_template)
+                self.pagetemplate_listbox.insert(self.pagetemplate_listbox.size(), listbox_entry)
     
-    def update_templates(self, selected_main_posrects=[], selected_main_negrects=[], selected_page_posrects=[], selected_page_negrects=[]):
+    def update_templates(self, selected_templates=[]):
         for rect_id in self.rect_ids:
             self.delete(rect_id)
         
-        if self.page_number in self.page_templates:
-            page_template = self.page_templates[self.page_number]
-            idx = 0
-            for rect in page_template.pos_rects:
-                rect_id = self.create_rectangle(rect[0], rect[1], rect[2], rect[3], outline=SELECTION_COLOR if idx in selected_page_posrects else POSRECT_COLOR, width=3)
-                self.rect_ids.append(rect_id)
-                idx += 1
-            idx = 0
-            for rect in page_template.neg_rects:
-                rect_id = self.create_rectangle(rect[0], rect[1], rect[2], rect[3], outline=SELECTION_COLOR if idx in selected_page_negrects else NEGRECT_COLOR, width=3)
-                self.rect_ids.append(rect_id)
-                idx += 1
+        for d in self.page_templates:
+            page_template = self.page_templates[d]
+            if self.page_number in page_template.get_page_range():
+                for id in page_template.rects:
+                    rect = page_template.rects[id]
+                    color = POSRECT_COLOR if page_template.templatetype == "positive" else NEGRECT_COLOR
+                    rect_id = self.create_rectangle(rect.x1 * self.width, rect.y1 * self.height, rect.x2 * self.width, rect.y2 * self.height, outline=SELECTION_COLOR if id in selected_templates else color, width=3)
+                    self.rect_ids.append(rect_id)
 
-        idx = 0
-        for rect in self.main_template.pos_rects:
-            rect_id = self.create_rectangle(rect[0], rect[1], rect[2], rect[3], outline=SELECTION_COLOR if idx in selected_main_posrects else POSRECT_COLOR, width=3)
-            self.rect_ids.append(rect_id)
-            idx += 1
-        idx = 0
-        for rect in self.main_template.neg_rects:
-            rect_id = self.create_rectangle(rect[0], rect[1], rect[2], rect[3], outline=SELECTION_COLOR if idx in selected_main_negrects else NEGRECT_COLOR, width=3)
-            self.rect_ids.append(rect_id)
-            idx += 1
-
-    def delete_main_template_posrects(self):
-        selecteditems = list(self.main_template_posrects_listbox.curselection())
-        selecteditems.sort(reverse=True)
-        for i in selecteditems:
-            del self.main_template.pos_rects[i]
-            self.main_template_posrects_listbox.delete(i)
-        
-        self.update_templates()
-    
-    def delete_main_template_negrects(self):
-        selecteditems = list(self.main_template_negrects_listbox.curselection())
-        selecteditems.sort(reverse=True)
-        for i in selecteditems:
-            del self.main_template.neg_rects[i]
-            self.main_template_negrects_listbox.delete(i)
-        
-        self.update_templates()
-    
-    def delete_page_template_posrects(self):
-        selecteditems = list(self.page_template_posrects_listbox.curselection())
+    def delete_pagetemplate(self):
+        selecteditems = list(self.pagetemplate_listbox.curselection())
         selecteditems.sort(reverse=True)
         for i in selecteditems:
             del self.page_templates[self.page_number].pos_rects[i]
-            self.page_template_posrects_listbox.delete(i)
+            self.pagetemplate_listbox.delete(i)
         
         self.update_templates()
 
-    def delete_page_template_negrects(self):
-        selecteditems = list(self.page_template_negrects_listbox.curselection())
-        selecteditems.sort(reverse=True)
-        for i in selecteditems:
-            del self.page_templates[self.page_number].neg_rects[i]
-            self.page_template_negrects_listbox.delete(i)
-        
-        self.update_templates()
-
-    def select_page_template_posrect(self, index):
-        self.update_templates(selected_page_posrects=[index])
-    
-    def select_page_template_negrect(self, index):
-        self.update_templates(selected_page_negrects=[index])
-
-    def select_main_template_posrect(self, index):
-        self.update_templates(selected_main_posrects=[index])
-
-    def select_main_template_negrect(self, index):
-        self.update_templates(selected_main_negrects=[index])
+    def select_pagetemplate(self, template_string: str):
+        parts = template_string.lower().split(',')
+        id = int(parts[0].strip().removeprefix("id").strip())
+        self.update_templates(selected_templates=[id])
