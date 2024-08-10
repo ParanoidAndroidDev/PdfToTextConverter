@@ -140,7 +140,11 @@ class PDFViewer:
         self.canvas.mode = mode
     
     def delete_pagetemplate(self):
-        self.canvas.delete_pagetemplate()
+        selection = self.pagetemplate_listbox.curselection()
+        if len(selection) > 0:
+            index = int(selection[0])
+            self.canvas.delete_pagetemplate(self.pagetemplate_listbox.get(index))
+            self.pagetemplate_listbox.delete(index)
 
     def select_pagetemplate(self, evt):
         selection = evt.widget.curselection()
@@ -157,6 +161,7 @@ class PDFViewer:
             data, num_pages = self.miner.get_metadata()
             self.current_page = 0
             self.canvas.set_page_number(0)
+            self.canvas.loaded = True
             if num_pages:
                 self.name = data.get('title', filename[:-4])
                 self.author = data.get('author', None)
