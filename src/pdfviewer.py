@@ -206,7 +206,7 @@ class PDFViewer:
 
         with open(filename, "w", encoding="utf-8", newline="\n") as file:
             if self.miner:
-                self.converted_text = self.miner.convert_to_text(self.canvas.main_template, self.canvas.page_templates)
+                self.converted_text = self.miner.convert_to_text(self.canvas.page_templates.values())
                 file.write(self.converted_text)
 
     def speak_text(self):

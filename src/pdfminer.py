@@ -47,10 +47,10 @@ class PDFMiner:
                                             continue
 
                                         if page_template.check_rect(span["bbox"], width, height):
-                                            if page_template.type == "negative":
+                                            if page_template.templatetype == "negative":
                                                 reject = True
                                                 break
-                                            if page_template.type == "positive":
+                                            if page_template.templatetype == "positive":
                                                 accept = True
 
                                     if accept and not reject:
