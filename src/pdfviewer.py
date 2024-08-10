@@ -54,8 +54,14 @@ class PDFViewer:
         self.upbutton.grid(row=0, column=1, pady=8)
         self.downbutton = Button(self.navigation_controls, bg="darkgrey", image=self.downarrow, command=self.next_page)
         self.downbutton.grid(row=0, column=3, pady=8)
-        self.page_label = ttk.Label(self.navigation_controls, text='page')
-        self.page_label.grid(row=0, column=4, padx=5)
+        self.page_label_1 = ttk.Label(self.navigation_controls, text="page ")
+        self.page_label_1.grid(row=0, column=4, padx=5)
+        self.page_entry_variable = StringVar(self.main, "")
+        self.page_entry_variable.trace("w", lambda name, index, mode, sv=self.page_entry_variable: self.set_page(sv))
+        self.page_entry = ttk.Entry(self.navigation_controls, textvariable=self.page_entry_variable, )
+        self.page_entry.grid(row=0, column=5, padx=5)
+        self.page_label_2 = ttk.Label(self.navigation_controls, text="")
+        self.page_label_2.grid(row=0, column=6, padx=5)
 
         # template controls
         self.template_controls = Frame(self.controls_frame, borderwidth=5)
@@ -178,9 +184,21 @@ class PDFViewer:
             self.img_file = self.miner.get_page(self.current_page)
             self.canvas.create_image(0, 0, anchor='nw', image=self.img_file)
             self.stringified_current_page = self.current_page + 1
-            self.page_label['text'] = str(self.stringified_current_page) + ' of ' + str(self.num_pages)
+            self.page_entry_variable.set(str(self.stringified_current_page))
+            self.page_label_2["text"] = " of " + str(self.num_pages)
             region = self.canvas.bbox(ALL)
             self.canvas.configure(scrollregion=region)   
+
+    def set_page(self, page_string_var):
+        if self.fileisopen:
+            page_number_str = page_string_var.get()
+            if page_number_str:
+                page_number = int(page_number_str) - 1
+                if page_number < self.num_pages - 1 and page_number >= 0:
+                    self.current_page = page_number
+                    self.display_page()
+                    self.canvas.set_page_number(self.current_page)
+                    self.canvas.update_templates()
 
     def next_page(self):
         if self.fileisopen:
