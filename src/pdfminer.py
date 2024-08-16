@@ -27,26 +27,29 @@ class PDFMiner:
 
         for page_num in range(self.pdf.page_count):
             page = self.pdf.load_page(page_num)
-            extracted_dict = page.get_text('dict', sort=True)
+            extracted_dict = page.get_text("rawdict", sort=True)
             width = extracted_dict["width"]
             height = extracted_dict["height"]
+
+            active_page_templates = []
+            for page_template in page_templates:
+                if page_num in page_template.get_page_range():
+                    active_page_templates.append(page_template)
+            
+            if len(active_page_templates) == 0:
+                continue
 
             for block in extracted_dict["blocks"]:
                 if "lines" in block:
                     for line in block["lines"]:
+                        chars = []
                         if "spans" in line:
                             for span in line["spans"]:
-                                if "text" in span:
-                                    text = span["text"]
-
+                                for char in span["chars"]:
                                     accept = False
                                     reject = False
-                                    for page_template in page_templates:
-                                        
-                                        if not page_num in page_template.get_page_range():
-                                            continue
-
-                                        if page_template.check_rect(span["bbox"], width, height):
+                                    for page_template in active_page_templates:
+                                        if page_template.check_rect(char["bbox"], width, height):
                                             if page_template.templatetype == "negative":
                                                 reject = True
                                                 break
@@ -54,6 +57,11 @@ class PDFMiner:
                                                 accept = True
 
                                     if accept and not reject:
-                                        result_text += text + "\n"
+                                        chars.append(char)
+                                
+                        if len(chars) > 0:
+                            chars.sort(key=lambda c: (c["bbox"][2], c["bbox"][0]))
+                            print([char["c"] for char in chars])
+                            result_text += ''.join([char["c"] for char in chars]) + "\n"
                 
         return result_text
