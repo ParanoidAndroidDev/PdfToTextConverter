@@ -2,6 +2,7 @@ from typing import List
 import pymupdf
 from tkinter import PhotoImage
 from src.pdfpagetemplate import PageTemplate
+import math
 
 class PDFMiner:
     def __init__(self, filepath):
@@ -32,36 +33,52 @@ class PDFMiner:
             height = extracted_dict["height"]
 
             active_page_templates = []
+            order_values = set()
             for page_template in page_templates:
                 if page_num in page_template.get_page_range():
                     active_page_templates.append(page_template)
+                    order_values.add(page_template.order)
             
             if len(active_page_templates) == 0:
                 continue
 
+            active_page_templates.sort(key=lambda x: x.order)
+            sorted_order_values = list(order_values)
+            sorted_order_values.sort()
+
+            lines = []
             for block in extracted_dict["blocks"]:
                 if "lines" in block:
                     for line in block["lines"]:
-                        chars = []
+                        line_chars = []
                         if "spans" in line:
                             for span in line["spans"]:
-                                for char in span["chars"]:
-                                    accept = False
-                                    reject = False
-                                    for page_template in active_page_templates:
-                                        if page_template.check_rect(char["bbox"], width, height):
-                                            if page_template.templatetype == "negative":
-                                                reject = True
-                                                break
-                                            if page_template.templatetype == "positive":
-                                                accept = True
+                                if "chars" in span:
+                                    for char in span["chars"]:
+                                        print(char["c"], end="")
+                                        line_chars.append(char)
 
-                                    if accept and not reject:
-                                        chars.append(char)
-                                
-                        if len(chars) > 0:
-                            chars.sort(key=lambda c: (c["bbox"][2], c["bbox"][0]))
-                            print([char["c"] for char in chars])
-                            result_text += ''.join([char["c"] for char in chars]) + "\n"
+                    line_chars.sort(key=lambda c: (c["bbox"][2], c["bbox"][0]))
+                    lines.append(line_chars)
+
+            for order in sorted_order_values:
+                for line in lines:
+                    text_line = ""
+                    for char in line:
+                        accept = False
+                        reject = False
+                        for page_template in active_page_templates:
+                            if page_template.order == order and page_template.check_rect(char["bbox"], width, height):
+                                if page_template.templatetype == "negative":
+                                    reject = True
+                                    break
+                                if page_template.templatetype == "positive":
+                                    accept = True
+
+                        if accept and not reject: 
+                            text_line += char["c"]
+
+                    print(text_line)
+                    result_text += text_line + "\n"
                 
         return result_text

@@ -10,7 +10,7 @@ NEGRECT_COLOR = "red"
 SELECTION_COLOR = "yellow"
 
 class PDFCanvas(Canvas):
-    def __init__(self, master, template_listbox, from_entry, to_entry, each_entry, cnf={}, **kwargs):
+    def __init__(self, master, template_listbox, from_entry, to_entry, each_entry, order_entry, cnf={}, **kwargs):
         super().__init__(master, cnf, **kwargs)
 
         self.page_number = 0
@@ -24,6 +24,7 @@ class PDFCanvas(Canvas):
         self.from_entry = from_entry
         self.to_entry = to_entry
         self.each_entry = each_entry
+        self.order_entry = order_entry
 
         def on_canvas_drag_lmb(event):
             if not self.loaded:
@@ -65,6 +66,7 @@ class PDFCanvas(Canvas):
                 from_value = int(self.from_entry.get()) - 1
                 to_value = int(self.to_entry.get()) - 1 
                 each_value = int(self.each_entry.get())
+                order_value = int(self.order_entry.get())
 
                 templatetype = "undefined"
                 if self.mode == CM_POSITIVE:
@@ -72,11 +74,11 @@ class PDFCanvas(Canvas):
                 elif self.mode == CM_NEGATIVE:
                     templatetype = "negative"
 
-                key = (templatetype, from_value, to_value, each_value)                
+                key = (templatetype, from_value, to_value, each_value, order_value)                
                 if key in self.page_templates:
                     template = self.page_templates[key]
                 else:
-                    template = PageTemplate(self, templatetype, from_value, to_value, each_value)
+                    template = PageTemplate(self, templatetype, from_value, to_value, each_value, order_value)
                     self.page_templates[key] = template
 
                     listbox_entry = self.get_listbox_entry(template)
@@ -115,7 +117,7 @@ class PDFCanvas(Canvas):
                     self.rect_ids.append(rect_id)
 
     def get_listbox_entry(self, pagetemplate):
-        return "type " + pagetemplate.templatetype + ", from " + str(pagetemplate.frompage + 1) + ", to " + str(pagetemplate.topage + 1) + ", each " + str(pagetemplate.eachpage)
+        return "type " + pagetemplate.templatetype + ", from " + str(pagetemplate.frompage + 1) + ", to " + str(pagetemplate.topage + 1) + ", each " + str(pagetemplate.eachpage) + ", order " + str(pagetemplate.order)
     
     def delete_pagetemplate(self, template_string: str):
         parts = template_string.lower().split(',')
@@ -123,8 +125,9 @@ class PDFCanvas(Canvas):
         frompage = int(parts[1].strip().removeprefix("from").strip()) - 1
         topage = int(parts[2].strip().removeprefix("to").strip()) - 1
         eachpage = int(parts[3].strip().removeprefix("each").strip())
+        order = int(parts[3].strip().removeprefix("order").strip())
  
-        del self.page_templates[(type, frompage, topage, eachpage)]        
+        del self.page_templates[(type, frompage, topage, eachpage, order)]        
         self.update_templates()
 
     def select_pagetemplate(self, template_string: str):
@@ -133,4 +136,5 @@ class PDFCanvas(Canvas):
         frompage = int(parts[1].strip().removeprefix("from").strip()) - 1
         topage = int(parts[2].strip().removeprefix("to").strip()) - 1
         eachpage = int(parts[3].strip().removeprefix("each").strip())
-        self.update_templates(selected_templates=[(type, frompage, topage, eachpage)])
+        order = int(parts[3].strip().removeprefix("order").strip())
+        self.update_templates(selected_templates=[(type, frompage, topage, eachpage, order)])

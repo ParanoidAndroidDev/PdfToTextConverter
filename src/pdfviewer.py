@@ -78,6 +78,7 @@ class PDFViewer:
         self.frompage_variable = StringVar(self.main, "1")
         self.topage_variable = StringVar(self.main, "1")
         self.eachpage_variable = StringVar(self.main, "1")
+        self.order_variable = StringVar(self.main, "0")
         self.pagetemplate_from_label = ttk.Label(self.pagetemplate_entries, text="From page ")
         self.pagetemplate_from_label.grid(row=0, column=0)
         self.pagetemplate_from_entry = ttk.Entry(self.pagetemplate_entries, width=5, textvariable=self.frompage_variable)
@@ -92,6 +93,10 @@ class PDFViewer:
         self.pagetemplate_each_entry.grid(row=0, column=5)
         self.pagetemplate_each_label_2 = ttk.Label(self.pagetemplate_entries, text="th page")
         self.pagetemplate_each_label_2.grid(row=0, column=6)
+        self.pagetemplate_order_label = ttk.Label(self.pagetemplate_entries, text="Order: ")
+        self.pagetemplate_order_label.grid(row=1, column=0)
+        self.pagetemplate_order_entry = ttk.Entry(self.pagetemplate_entries, width=5, textvariable=self.order_variable)
+        self.pagetemplate_order_entry.grid(row=1, column=1)
         self.pagetemplate_entries.grid_columnconfigure(0, weight=4)
         self.pagetemplate_entries.grid_columnconfigure(1, weight=1)
         self.pagetemplate_entries.grid_columnconfigure(2, weight=4)
@@ -135,7 +140,7 @@ class PDFViewer:
         self.scrollx.grid(row=1, column=0, sticky=(W, S, E))
 
         # PDF canvas
-        self.canvas = PDFCanvas(self.pdf_frame, self.pagetemplate_listbox, self.pagetemplate_from_entry, self.pagetemplate_to_entry, self.pagetemplate_each_entry, bg='#ECE8F3')
+        self.canvas = PDFCanvas(self.pdf_frame, self.pagetemplate_listbox, self.pagetemplate_from_entry, self.pagetemplate_to_entry, self.pagetemplate_each_entry, self.pagetemplate_order_entry, bg='#ECE8F3')
         self.canvas.configure(yscrollcommand=self.scrolly.set, xscrollcommand=self.scrollx.set)
         self.canvas.grid(row=0, column=0, sticky=N + W + S + E)
         self.scrollx.configure(command=self.canvas.xview)

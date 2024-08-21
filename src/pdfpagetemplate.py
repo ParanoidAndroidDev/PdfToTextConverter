@@ -9,7 +9,7 @@ class TemplateRect:
         self.y2 = bounds[3] / canvas.height
 
 class PageTemplate:
-    def __init__(self, canvas, templatetype, frompage, topage, eachpage):
+    def __init__(self, canvas, templatetype, frompage, topage, eachpage, order):
         if not templatetype in ["positive", "negative"]:
             raise "Template type not recognized: " + templatetype
         self.templatetype = templatetype
@@ -29,6 +29,7 @@ class PageTemplate:
         self.frompage = frompage
         self.topage = topage
         self.eachpage = eachpage
+        self.order = order
     
     def add_rect(self, rect_bounds):
         id = uuid.uuid4()
